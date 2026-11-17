@@ -21,7 +21,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::106002846523:role/gha-read-lb
           aws-region: us-east-1
-      
+
       - name: Find Jenkins LB
         id: lb
         run: |
@@ -32,17 +32,22 @@ jobs:
 
       - name: Trigger Jenkins job
         run: |
-          # 1. Fetch the Jenkins crumb using the JSON API (with -sSLk and trailing slash)
+          # 1. Fetch the Jenkins crumb via HTTPS directly (no redirect, so auth header survives)
           CRUMB_JSON=$(curl -sSLk -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
-            "http://${{ steps.lb.outputs.dns }}/jenkins/crumbIssuer/api/json/")
-          
+            "https://${{ steps.lb.outputs.dns }}/jenkins/crumbIssuer/api/json/")
+
           echo "Crumb JSON Response: $CRUMB_JSON"
-          
+
+          if echo "$CRUMB_JSON" | grep -qi "Authentication required"; then
+            echo "::error::Jenkins auth failed — check JENKINS_USER/JENKINS_TOKEN secrets"
+            exit 1
+          fi
+
           FIELD=$(echo "$CRUMB_JSON" | jq -r '.crumbRequestField')
           VAL=$(echo "$CRUMB_JSON" | jq -r '.crumb')
-          
-          # 2. Trigger the build using the extracted header
+
+          # 2. Trigger the build using the extracted crumb header
           curl -fsSLk -X POST \
             -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
             -H "${FIELD}:${VAL}" \
-            "http://${{ steps.lb.outputs.dns }}/jenkins/job/${{ env.JENKINS_JOB_NAME }}/build/"
+            "https://${{ steps.lb.outputs.dns }}/jenkins/job/${{ env.JENKINS_JOB_NAME }}/build/"
