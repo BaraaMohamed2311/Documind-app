@@ -32,6 +32,6 @@ jobs:
 
       - name: Trigger Jenkins job
         run: |
-          curl -fsS -X POST \
+          curl -fsSL -X POST \
             -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
-            "http://${{ steps.lb.outputs.dns }}/jenkins/job/${{ env.JENKINS_JOB_NAME }}/build"
+            "http://${{ steps.lb.outputs.dns }}/jenkins/job/${{ env.JENKINS_JOB_NAME }}/build/"
