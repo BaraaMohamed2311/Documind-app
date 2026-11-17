@@ -28,7 +28,7 @@ jobs:
         id: lb
         run: |
           DNS=$(aws elbv2 describe-load-balancers \
-            --names jenkins-lb \
+            --names proj-prod-documind \
             --query 'LoadBalancers[0].DNSName' --output text)
           echo "dns=$DNS" >> "$GITHUB_OUTPUT"
 
