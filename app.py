@@ -217,7 +217,7 @@ PAGE = """<!doctype html>
     <div>
       <div class="title-row">
         <h1>DocuMind</h1>
-        <span class="version">v1.0.1</span>
+        <span class="version">v1.0.2</span>
       </div>
       <p>Paste a document or load a .txt / .pdf and get a concise summary.</p>
     </div>
