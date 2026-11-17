@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/gha-read-lb
+          role-to-assume: arn:aws:iam::106002846523:role/gha-read-lb
           aws-region: us-east-1
 
       - name: Find Jenkins LB
