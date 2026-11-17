@@ -13,6 +13,9 @@ permissions:
 jobs:
   trigger:
     runs-on: ubuntu-latest
+    env:
+      ALB_NAME: proj-prod-documind
+      JENKINS_JOB_NAME: documind
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -23,7 +26,7 @@ jobs:
         id: lb
         run: |
           DNS=$(aws elbv2 describe-load-balancers \
-            --names proj-prod-documind \
+            --names "${{ env.ALB_NAME }}" \
             --query 'LoadBalancers[0].DNSName' --output text)
           echo "dns=$DNS" >> "$GITHUB_OUTPUT"
 
@@ -31,4 +34,4 @@ jobs:
         run: |
           curl -fsS -X POST \
             -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
-            "http://${{ steps.lb.outputs.dns }}/jenkins/job/my-job/build"
+            "http://${{ steps.lb.outputs.dns }}/jenkins/job/${{ env.JENKINS_JOB_NAME }}/build"
