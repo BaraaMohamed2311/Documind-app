@@ -32,12 +32,17 @@ jobs:
 
       - name: Trigger Jenkins job
         run: |
-          # 1. Fetch the Jenkins crumb dynamically
-          CRUMB=$(curl -s -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
-            "http://${{ steps.lb.outputs.dns }}/jenkins/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)")
-
-          # 2. Trigger the build using the crumb header
+          # 1. Fetch the Jenkins crumb using the JSON API
+          CRUMB_JSON=$(curl -s -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
+            "http://${{ steps.lb.outputs.dns }}/jenkins/crumbIssuer/api/json")
+          
+          echo "Crumb JSON Response: $CRUMB_JSON"
+          
+          FIELD=$(echo "$CRUMB_JSON" | jq -r '.crumbRequestField')
+          VAL=$(echo "$CRUMB_JSON" | jq -r '.crumb')
+          
+          # 2. Trigger the build using the extracted header
           curl -fsSLk -X POST \
             -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
-            -H "$CRUMB" \
+            -H "${FIELD}:${VAL}" \
             "http://${{ steps.lb.outputs.dns }}/jenkins/job/${{ env.JENKINS_JOB_NAME }}/build/"
